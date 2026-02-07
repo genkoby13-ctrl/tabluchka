@@ -1,0 +1,45 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch:  # Permette di avviare manualmente
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y git unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+        
+    - name: Install Buildozer
+      run: |
+        pip3 install --user buildozer
+        export PATH=$PATH:$HOME/.local/bin
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+        
+    - name: Build APK
+      run: |
+        export PATH=$PATH:$HOME/.local/bin
+        buildozer android debug
+        
+    - name: Upload APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: android-apk
+        path: bin/*.apk
+        retention-days: 30
+
