@@ -92,6 +92,9 @@ android.api = 33
 # (int) Minimum API your APK / AAB will support.
 android.minapi = 21
 
+# (str) Android build tools version
+android.build_tools_version = 33.0.0
+
 # (int) Android SDK version to use
 android.sdk = 33
 

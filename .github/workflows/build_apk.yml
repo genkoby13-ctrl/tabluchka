@@ -31,6 +31,17 @@ jobs:
         export PATH=$PATH:$HOME/.local/bin
         echo "$HOME/.local/bin" >> $GITHUB_PATH
         
+    - name: Setup Android SDK
+      run: |
+        export PATH=$PATH:$HOME/.local/bin
+        # Create Android SDK directory
+        mkdir -p $HOME/.buildozer/android/platform
+        # Initialize buildozer to download Android SDK components
+        # This will download SDK, NDK, and build-tools
+        buildozer android update 2>&1 || true
+        # Or force download by running a dry-run
+        buildozer android clean 2>&1 || true
+        
     - name: Build APK
       run: |
         export PATH=$PATH:$HOME/.local/bin
