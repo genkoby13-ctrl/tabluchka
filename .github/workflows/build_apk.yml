@@ -32,22 +32,31 @@ jobs:
         echo "$HOME/.local/bin" >> $GITHUB_PATH
         
     - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+      with:
+        api-level: 33
+        build-tools: 33.0.0
+        ndk-version: 23b
+        
+    - name: Pre-download Android components for Buildozer
       run: |
         export PATH=$PATH:$HOME/.local/bin
-        # Create Android SDK directory
+        export ANDROID_HOME=$ANDROID_SDK_ROOT
+        # Create buildozer directory structure
         mkdir -p $HOME/.buildozer/android/platform
-        # Initialize buildozer to download Android SDK components
-        # This will download SDK, NDK, and build-tools
-        buildozer android update 2>&1 || true
-        # Or force download by running a dry-run
-        buildozer android clean 2>&1 || true
+        # Try to trigger download by running buildozer with --verbose
+        # This will download missing components
+        buildozer android clean 2>&1 | head -50 || true
         
     - name: Build APK
       run: |
         export PATH=$PATH:$HOME/.local/bin
-        # Buildozer will download Android SDK automatically
-        # Use verbose mode to see what's happening
+        export ANDROID_HOME=$ANDROID_SDK_ROOT
+        # Buildozer will use the pre-installed Android SDK
         buildozer -v android debug
+      env:
+        ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+        ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
         
     - name: Upload APK
       uses: actions/upload-artifact@v4
