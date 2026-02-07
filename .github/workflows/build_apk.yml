@@ -38,15 +38,28 @@ jobs:
         build-tools: 33.0.0
         ndk-version: 23b
         
-    - name: Pre-download Android components for Buildozer
+    - name: Setup Buildozer Android SDK path
       run: |
         export PATH=$PATH:$HOME/.local/bin
-        export ANDROID_HOME=$ANDROID_SDK_ROOT
         # Create buildozer directory structure
-        mkdir -p $HOME/.buildozer/android/platform
-        # Try to trigger download by running buildozer with --verbose
-        # This will download missing components
-        buildozer android clean 2>&1 | head -50 || true
+        mkdir -p $HOME/.buildozer/android/platform/android-sdk
+        # Link or copy Android SDK to where Buildozer expects it
+        if [ -d "$ANDROID_SDK_ROOT" ]; then
+          # Copy SDK to buildozer location
+          cp -r $ANDROID_SDK_ROOT/* $HOME/.buildozer/android/platform/android-sdk/ 2>/dev/null || true
+          # Ensure build-tools are in the right place
+          if [ -d "$ANDROID_SDK_ROOT/build-tools" ]; then
+            mkdir -p $HOME/.buildozer/android/platform/android-sdk/build-tools
+            cp -r $ANDROID_SDK_ROOT/build-tools/* $HOME/.buildozer/android/platform/android-sdk/build-tools/ 2>/dev/null || true
+          fi
+          # Ensure platform-tools are available
+          if [ -d "$ANDROID_SDK_ROOT/platform-tools" ]; then
+            mkdir -p $HOME/.buildozer/android/platform/android-sdk/platform-tools
+            cp -r $ANDROID_SDK_ROOT/platform-tools/* $HOME/.buildozer/android/platform/android-sdk/platform-tools/ 2>/dev/null || true
+          fi
+        fi
+        # Verify aidl is available
+        find $HOME/.buildozer/android/platform/android-sdk -name "aidl" -type f 2>/dev/null | head -1 || echo "Aidl not found yet, Buildozer will download it"
         
     - name: Build APK
       run: |
